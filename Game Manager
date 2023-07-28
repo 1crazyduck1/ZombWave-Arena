@@ -1,0 +1,246 @@
+using UnityEngine;
+using TMPro;
+
+public class GameManager : MonoBehaviour
+{
+    [Header ("Pistol")]
+    public int pistolAmmo;
+    public int maxPistolAmmo = 60;
+
+    [Header("Assault Rifle")]
+    public int assaultAmmo;
+    public int maxAssaultAmmo = 120;
+
+    [Header("SMG")]
+    public int smgAmmo;
+    public int maxSMGAmmo = 90;
+
+    [Header("Shotgun")]
+    public int shotgunAmmo;
+    public int maxShotgunAmmo = 60;
+
+    [Header("Rifle")]
+    public int rifleAmmo;
+    public int maxRifleAmmo = 40;
+
+    [Header("Grenades")]
+    public int grenades;
+    public int maxGrenades = 3;
+
+    [Header("Money and XP")]
+    public int xpPoints;
+    public int requiredXP;
+    public int level;
+    [Range(1, 300)]
+    public int addM = 300;
+    [Range(2, 4)]
+    public int pwM = 2;
+    [Range(7, 14)]
+    public int dvM = 7;
+    public int money;
+
+    [Header("HUDText")]
+    public TMP_Text moneyHUD;
+    public TMP_Text xpHUD;
+
+    [Header("Bool")]
+    public bool turret = false;
+    public bool boolPistol;
+    public bool boolSMG;
+    public bool boolShotgun;
+    public bool boolAssault;
+    public bool boolRifle;
+
+    [Header("Gun Holders")]
+    public GameObject nPistols;
+    public GameObject nSMG;
+    public GameObject nAssaultrifles;
+    public GameObject nShotguns;
+    public GameObject nRifles;
+    private int pPistols;
+    private int pSMG;
+    private int pAssaultrifles;
+    private int pShotgun;
+    private int pRifles;
+
+    [Header("Parents")]
+    public GameObject Holder;
+    public GameObject WeaponHolder;
+
+    
+
+
+    public void Start()
+    {
+        requiredXP = XpToNextLevel();
+        money = PlayerPrefs.GetInt("Money");
+    }
+
+    void Update()
+    {
+        
+        AmmoCheck();        
+        ActivateGuns();
+        if(xpPoints > requiredXP)
+        {
+            LevelUp();
+        }
+       if(Input.GetKeyDown(KeyCode.B))
+        {
+            money += 50;
+        }
+        PlayerPrefs.SetInt("Money", money);
+        
+    }
+
+    public void AmmoCheck()
+    {
+        if (pistolAmmo > maxPistolAmmo)
+        {
+            pistolAmmo = maxPistolAmmo;
+        }
+        if (pistolAmmo < 0)
+        {
+            pistolAmmo = 0;
+        }
+        if (assaultAmmo > maxAssaultAmmo)
+        {
+            assaultAmmo = maxAssaultAmmo;
+        }
+        if (assaultAmmo < 0)
+        {
+            assaultAmmo = 0;
+        }
+        if (smgAmmo > maxSMGAmmo)
+        {
+            smgAmmo = maxSMGAmmo;
+        }
+        if (smgAmmo < 0)
+        {
+            smgAmmo = 0;
+        }
+        if(shotgunAmmo > maxShotgunAmmo)
+        {
+            shotgunAmmo = maxShotgunAmmo;
+        }
+        if(shotgunAmmo < 0)
+        {
+            shotgunAmmo = 0;
+        }
+        if(rifleAmmo > maxRifleAmmo)
+        {
+            rifleAmmo = maxRifleAmmo;
+        }
+        if(rifleAmmo < 0)
+        {
+            rifleAmmo = 0;
+        }
+
+        if (grenades > maxGrenades)
+        {
+            grenades = maxGrenades;
+        }
+    }
+    
+    public void SaveMoney()
+    {
+        PlayerPrefs.SetInt("Money", money);
+    }
+
+    public void ActivateGuns()
+    {
+        pPistols = PlayerPrefs.GetInt("Pistols");
+        pSMG = PlayerPrefs.GetInt("SMG");
+        pAssaultrifles = PlayerPrefs.GetInt("AssaultRifles");
+        pShotgun = PlayerPrefs.GetInt("Shotguns");
+        pRifles = PlayerPrefs.GetInt("Rifles");
+        //Pistols
+        if(pPistols >= 1)
+        {
+            //nPistols.SetActive(true);
+            nPistols.transform.parent = WeaponHolder.transform;
+            boolPistol = true;
+        }
+        if (pPistols <= 0)
+        {
+            //nPistols.SetActive(false);
+            nPistols.transform.parent = Holder.transform;
+            boolPistol = false;
+        }
+
+        //SMG
+        if (pSMG >= 1)
+        {
+            //nSMG.SetActive(true);
+            nSMG.transform.parent = WeaponHolder.transform;
+            boolSMG = true;
+        }
+        if (pSMG <= 0)
+        {
+            //nSMG.SetActive(false);
+            nSMG.transform.parent = Holder.transform;
+            boolSMG = false;
+        }
+
+        //AssaultRifles
+        if (pAssaultrifles >= 1)
+        {
+            //nAssaultrifles.SetActive(true);
+            nAssaultrifles.transform.parent = WeaponHolder.transform;
+            boolAssault = true;
+        }
+        if(pAssaultrifles <= 0)
+        {
+            //nAssaultrifles.transform.parent = Holder.transform;
+            nAssaultrifles.SetActive(false);
+            boolAssault = false;
+        }
+
+        //Shotguns
+        if (pShotgun >= 1)
+        {
+            //nShotguns.SetActive(true);
+            nShotguns.transform.parent = WeaponHolder.transform;
+            boolShotgun = true;
+        }
+        if (pShotgun <= 0)
+        {
+            //nShotguns.SetActive(false);
+            nShotguns.transform.parent = Holder.transform;
+            boolShotgun = false;
+        }
+
+        //Rifles
+        if (pRifles >= 1)
+        {
+            //nRifles.SetActive(true);
+            nRifles.transform.parent = WeaponHolder.transform;
+            boolRifle = true;
+        }
+        if (pRifles <= 0)
+        {
+            //nRifles.SetActive(false);
+            nRifles.transform.parent = Holder.transform;
+            boolRifle = false;
+        }
+    }
+
+    public void LevelUp()
+    {
+        level++;
+        xpPoints = Mathf.RoundToInt(xpPoints - requiredXP);
+        requiredXP = XpToNextLevel();
+    }
+    
+    private int XpToNextLevel()
+    {
+        int OverXp = 0;
+        for(int Levels = 1; Levels <= level; Levels++)
+        {
+            OverXp += (int) Mathf.Floor(Levels + addM + Mathf.Pow(pwM, Levels / dvM));
+        }
+        return OverXp / 4;
+    }
+
+    
+}

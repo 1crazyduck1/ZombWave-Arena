@@ -1,0 +1,142 @@
+using System.Collections;
+using UnityEngine;
+using TMPro;
+
+public class Assaultrifle : MonoBehaviour
+{
+    [Header("Magazine Variable")]
+    public int magazine = 30;
+    public int maxMagazine = 30;
+    private int nextReloadMag;
+
+    [Header("Reload Variable")]
+    public float reloadTime = 3f;
+    private float nextReloadTime;
+    private bool isReloading = false;
+
+    [Header("Bullet Variable")]
+    public float damage = 10f;
+    public float range = 100f;
+    public float impactForce = 30f;
+
+    [Header("Fire Variable")]
+    public float fireRate = 15f;
+    private float nextTimeToFire = 0f;
+    public float upRecoil;
+    public float sideRecoil;
+    public float recoilDegrise;
+
+    [Header("Sounds")]
+    public AudioSource fire;
+    //public AudioSource reload;
+
+    [Header("Camera")]
+    public Camera fpsCam;
+    public GameObject cameraHolder;
+    public FirstPersonController fpsController;
+
+    [Header("Particles")]
+    public ParticleSystem muzzleFlash;
+    //public ParticleSystem CartrigeEject;    
+    public GameObject impactEffect;
+
+    [Header("HUD Text")]
+    public TMP_Text ammo;
+    public TMP_Text maxAmmo;
+
+    Animator fireAnim;
+
+    void Start()
+    {    
+        nextReloadTime = reloadTime;
+        fireAnim = GetComponent<Animator>();
+    }
+   
+    void Update()
+    {
+        if (isReloading)
+        {
+            return;
+        }
+
+        if (Input.GetButton("Fire1") && Time.time >= nextTimeToFire && magazine > 0 && isReloading == false)
+        {
+            fpsController.m_MouseLook.Recoil(upRecoil/recoilDegrise, sideRecoil/recoilDegrise);
+            nextTimeToFire = Time.time + 1f / fireRate;
+            Shoot();            
+            magazine--;
+            fire.Play();
+            fireAnim.SetBool("Shoot", true);
+        }
+        
+        ammo.text = magazine.ToString();
+        maxAmmo.text = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().assaultAmmo.ToString();
+
+        if (magazine <= 0 && GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().assaultAmmo > 0)
+        {
+            nextReloadMag = maxMagazine;
+            magazine -= 1;            
+            StartCoroutine(Reload());
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.R) && magazine < maxMagazine && GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().assaultAmmo > 0 )
+        {
+            nextReloadMag = maxMagazine - magazine;
+            //fireAnim.SetTrigger("Reload");
+            StartCoroutine(Reload());
+            //reload.Play();
+            return;            
+        }
+    }
+
+    void Shoot()
+    {
+        muzzleFlash.Play();        
+        //CartrigeEject.Play();        
+        RaycastHit hit;
+        if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
+        {
+            Debug.Log(hit.transform.name);
+
+            Target target = hit.transform.GetComponent<Target>(); // hitnutie nepriateľa !!!
+            if (target != null)
+            {
+                target.TakeDamage(damage);
+            }
+
+            if (hit.rigidbody != null)
+            {
+                hit.rigidbody.AddForce(-hit.normal * impactForce);
+            }
+
+            Instantiate(impactEffect, hit.point, Quaternion.LookRotation(-hit.normal));
+        }
+        fireAnim.keepAnimatorControllerStateOnDisable = true;
+    }
+
+    IEnumerator Reload()
+    {        
+        if (GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().assaultAmmo < nextReloadMag)
+        {
+            magazine = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().assaultAmmo + magazine;
+        }
+        else
+        {
+            magazine = maxMagazine;
+        }
+        GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().assaultAmmo -= nextReloadMag;
+        isReloading = true;
+        yield return new WaitForSeconds(reloadTime);        
+        isReloading = false;
+    }
+
+    private void OnDisable()
+    {
+        fireAnim.SetTrigger("Reset");
+        //fireAnim.ResetTrigger("Reload");
+        //fireAnim.Play("New State", 0, 0f);
+        nextTimeToFire = 0;
+        isReloading = false;
+    }
+}

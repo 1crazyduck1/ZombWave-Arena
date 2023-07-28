@@ -1,0 +1,26 @@
+using UnityEngine;
+
+public class GrabPowerUps : MonoBehaviour
+{
+    public GameObject powerUpScreen;
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag("Player"))
+        {
+            GameObject.FindGameObjectWithTag("Player").GetComponent<FirstPersonController>().enabled = false;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            Time.timeScale = 0f;
+            powerUpScreen.SetActive(true);
+        }
+    }
+
+    public void ScreenExit()
+    {
+        GameObject.FindGameObjectWithTag("Player").GetComponent<FirstPersonController>().enabled = true;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        Time.timeScale = 1f;
+        Destroy(gameObject);
+    }
+}
